@@ -1,7 +1,9 @@
 const API_KEY = "c9e046dfa1555b36adcb885255dab08e";
 
+const cityInput = document.getElementById("cityInput");
 const weatherBox = document.getElementById("weather");
 const historyBox = document.getElementById("history");
+const loadingBox = document.getElementById("loading");
 8
 /* ---------- WEATHER FETCH ---------- */
 async function getWeather(city) {
@@ -25,13 +27,30 @@ document.getElementById("searchBtn").onclick = () => {
 };
 
 /* ---------- UI RENDER ---------- */
+function getWeatherIcon(weatherMain) {
+    const icons = {
+        Clear: '☀️',
+        Clouds: '☁️',
+        Rain: '🌧️',
+        Drizzle: '🌦️',
+        Thunderstorm: '⛈️',
+        Snow: '❄️',
+        Mist: '🌫️'
+    };
+    return icons[weatherMain] || '🌤️';
+}
+
 function renderWeather(d) {
+    const icon = getWeatherIcon(d.weather[0].main);
     weatherBox.innerHTML = `
-        <div class="weather-item"><label>City</label><span>${d.name}, ${d.sys.country}</span></div>
-        <div class="weather-item"><label>Temperature</label><span>${d.main.temp} °C</span></div>
-        <div class="weather-item"><label>Weather</label><span>${d.weather[0].main}</span></div>
-        <div class="weather-item"><label>Humidity</label><span>${d.main.humidity}%</span></div>
-        <div class="weather-item"><label>Wind Speed</label><span>${d.wind.speed} m/s</span></div>
+        <div class="weather-main">
+            <div class="weather-icon">${icon}</div>
+            <div class="temp-main">${Math.round(d.main.temp)}°C</div>
+            <div class="weather-desc">${d.weather[0].main}</div>
+        </div>
+        <div class="weather-item"><label><i class="fas fa-map-marker-alt"></i> City</label><span>${d.name}, ${d.sys.country}</span></div>
+        <div class="weather-item"><label><i class="fas fa-tint"></i> Humidity</label><span>${d.main.humidity}%</span></div>
+        <div class="weather-item"><label><i class="fas fa-wind"></i> Wind</label><span>${d.wind.speed} m/s</span></div>
     `;
 }
 
@@ -65,13 +84,16 @@ function showHistory() {
 
 /* ---------- SEARCH FUNCTION ---------- */
 async function search(city) {
+    loadingBox.style.display = "block";
     weatherBox.innerHTML = "";
     try {
         const data = await getWeather(city);
         renderWeather(data);
         saveHistory(data.name);
     } catch (error) {
-        weatherBox.innerHTML = `<p style="color:red">${error.message}</p>`;
+        weatherBox.innerHTML = `<p class="error">${error.message}</p>`;
+    } finally {
+        loadingBox.style.display = "none";
     }
 }
 
